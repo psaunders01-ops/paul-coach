@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coach">
+<meta name="theme-color" content="#0a0a0f">
+<title>Paul · Coaching Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #ffffff0f;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --accent: #4fffb0;
+    --accent2: #ff6b6b;
+    --accent3: #6b8fff;
+    --warn: #ffb347;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 430px; margin: 0 auto; padding: 0 0 100px; }
+
+  /* Header */
+  .header {
+    padding: 52px 20px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .header-left h1 {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .header-left h1 span { color: var(--accent); }
+  .header-left p { font-size: 11px; color: var(--muted); margin-top: 5px; letter-spacing: 0.5px; }
+  .date-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    font-family: var(--font-mono);
+  }
+  .date-badge strong { display: block; color: var(--text); font-size: 13px; }
+
+  /* Nav tabs */
+  .nav {
+    display: flex;
+    gap: 4px;
+    padding: 0 20px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .nav-btn.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* Cards */
+  .card {
+    margin: 0 20px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .card-body { padding: 16px 18px; }
+
+  /* Metric grid */
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px; }
+  .metric {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+  }
+  .metric-label { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .metric-value { font-family: var(--font-head); font-size: 26px; font-weight: 700; line-height: 1; }
+  .metric-sub { font-size: 10px; margin-top: 4px; }
+  .green { color: var(--accent); }
+  .amber { color: var(--warn); }
+  .red { color: var(--accent2); }
+  .blue { color: var(--accent3); }
+
+  /* Status pill */
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .pill-green { background: #4fffb015; color: var(--accent); border: 1px solid #4fffb030; }
+  .pill-amber { background: #ffb34715; color: var(--warn); border: 1px solid #ffb34730; }
+  .pill-red { background: #ff6b6b15; color: var(--accent2); border: 1px solid #ff6b6b30; }
+  .pill-blue { background: #6b8fff15; color: var(--accent3); border: 1px solid #6b8fff30; }
+
+  /* CTL/ATL/TSB summary */
+  .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); }
+  .form-cell {
+    background: var(--surface);
+    padding: 16px 14px;
+    text-align: center;
+  }
+  .form-cell-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .form-cell-val { font-family: var(--font-head); font-size: 30px; font-weight: 800; line-height: 1; }
+  .form-cell-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* Fitness chart canvas */
+  #fitnessChart {
+    width: 100%;
+    height: 200px;
+    display: block;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 14px;
+    padding: 10px 18px 14px;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line { width: 16px; height: 2px; flex-shrink: 0; }
+
+  /* Session list */
+  .session-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .session-item:last-child { border-bottom: none; }
+  .session-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; font-family: var(--font-head); }
+  .session-meta { font-size: 10px; color: var(--muted); }
+  .session-right { text-align: right; flex-shrink: 0; margin-left: 10px; }
+
+  /* AI chat */
+  .chat-area {
+    min-height: 120px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .chat-area p { margin-bottom: 8px; }
+  .chat-area p:last-child { margin-bottom: 0; }
+  .chat-area strong { color: var(--accent); }
+  .chat-area .bullet { padding-left: 14px; position: relative; }
+  .chat-area .bullet::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-size: 10px; top: 2px; }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 18px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-input::placeholder { color: var(--muted); }
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+  .send-btn:active { opacity: 0.7; }
+  .send-btn svg { width: 16px; height: 16px; }
+
+  /* Loading state */
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 18px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Readiness input form */
+  .readiness-form { padding: 14px 18px; }
+  .form-row { margin-bottom: 14px; }
+  .form-row label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .slider-wrap { display: flex; align-items: center; gap: 10px; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--surface2);
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  .slider-val { font-family: var(--font-head); font-size: 18px; font-weight: 700; color: var(--accent); min-width: 30px; text-align: right; }
+  .assess-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+    letter-spacing: 0.3px;
+    transition: opacity 0.2s;
+  }
+  .assess-btn:active { opacity: 0.8; }
+
+  /* Week plan */
+  .week-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .week-row:last-child { border-bottom: none; }
+  .week-day { font-size: 10px; color: var(--muted); width: 28px; flex-shrink: 0; text-transform: uppercase; }
+  .week-session { flex: 1; font-size: 12px; color: var(--text); }
+  .week-session small { display: block; font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 20px;
+    z-index: 100;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+  .bottom-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    transition: color 0.2s;
+  }
+  .bottom-nav-btn.active { color: var(--accent); }
+  .bottom-nav-btn svg { width: 20px; height: 20px; }
+
+  /* Page sections */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card { animation: fadeUp 0.3s ease forwards; }
+
+  /* Tooltip */
+  #chartTooltip {
+    position: absolute;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    pointer-events: none;
+    display: none;
+    z-index: 10;
+    line-height: 1.6;
+  }
+
+  /* API key setup overlay */
+  .setup-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 30px;
+  }
+  .setup-overlay.hidden { display: none; }
+  .setup-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 380px;
+  }
+  .setup-box h2 { font-family: var(--font-head); font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .setup-box h2 span { color: var(--accent); }
+  .setup-box p { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+  .setup-box p a { color: var(--accent); text-decoration: none; }
+  .key-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; font-family: var(--font-mono);
+    font-size: 12px; color: var(--text); outline: none; margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .key-input:focus { border-color: var(--accent); }
+  .key-input::placeholder { color: var(--muted); }
+  .save-key-btn {
+    width: 100%; padding: 13px; background: var(--accent); color: #000;
+    border: none; border-radius: 10px; font-family: var(--font-head);
+    font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+  }
+  .key-note { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.6; }
+  .key-status {
+    display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+    font-size: 10px; cursor: pointer; color: var(--muted);
+    border: none; background: none; font-family: var(--font-mono);
+  }
+  .key-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+  .key-dot.active { background: var(--accent); }
+
+  .section-label {
+    padding: 6px 20px 8px;
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .verdict-bar {
+    margin: 0 20px 12px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid;
+  }
+  .verdict-bar.green { background: #4fffb008; border-color: #4fffb030; }
+  .verdict-bar.amber { background: #ffb34708; border-color: #ffb34730; }
+  .verdict-bar h2 { font-family: var(--font-head); font-size: 16px; font-weight: 800; }
+  .verdict-bar p { font-size: 11px; margin-top: 2px; }
+</style>
+</head>
+<body>
+<!-- API Key Setup Overlay -->
+<div class="setup-overlay hidden" id="setupOverlay">
+  <div class="setup-box">
+    <h2>PAUL<span>.</span> COACH</h2>
+    <p>To enable the AI coaching chat, enter your Anthropic API key. It's stored only on your device and never sent anywhere except directly to Anthropic.<br><br>
+    Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create key.</p>
+    <input class="key-input" id="keyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="save-key-btn" onclick="saveKey()">Save & Start Coaching →</button>
+    <p class="key-note">Your key is saved to your browser's local storage.<br>It never leaves your device.</p>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>PAUL<span>.</span></h1>
+      <p>CYCLING COACH · AI POWERED</p>
+    </div>
+    <div class="date-badge" style="cursor:pointer" onclick="showKeySettings()">
+      <strong id="todayDate">—</strong>
+      <span id="weekLabel">Week 2 of 8</span>
+      <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+        <div class="key-dot" id="keyDot"></div>
+        <span style="font-size:9px" id="keyLabel">No API key</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav (also controls pages) -->
+  <!-- Pages -->
+  <div id="page-today" class="page active">
+
+    <!-- Verdict -->
+    <div class="verdict-bar green">
+      <div>
+        <h2 class="green">REST DAY ✓</h2>
+        <p style="color:var(--muted)">Thu 14 May · TSB recovering · Saturday is key</p>
+      </div>
+      <span class="pill pill-green">Week 2</span>
+    </div>
+
+    <!-- Today's readiness -->
+    <p class="section-label">Morning Readiness</p>
+    <div class="card">
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="metric-label">Body Battery</div>
+          <div class="metric-value green">96</div>
+          <div class="metric-sub green">+57 charged overnight</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">HRV Overnight</div>
+          <div class="metric-value green">48<span style="font-size:14px;font-weight:400">ms</span></div>
+          <div class="metric-sub green">Above baseline (44ms)</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Resting HR</div>
+          <div class="metric-value green">52<span style="font-size:14px;font-weight:400">bpm</span></div>
+          <div class="metric-sub green">At baseline</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Sleep</div>
+          <div class="metric-value green">9<span style="font-size:14px;font-weight:400">h 8m</span></div>
+          <div class="metric-sub green">Score: excellent</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Stress</div>
+          <div class="metric-value green">13</div>
+          <div class="metric-sub green">Very low</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">TSB (Form)</div>
+          <div class="metric-value amber">−6</div>
+          <div class="metric-sub amber">Neutral — improving</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fitness form -->
+    <p class="section-label">Fitness & Form</p>
+    <div class="card" style="overflow:hidden">
+      <div class="form-grid">
+        <div class="form-cell">
+          <div class="form-cell-label">Fitness</div>
+          <div class="form-cell-val red">32</div>
+          <div class="form-cell-sub">CTL</div>
+        </div>
+        <div class="form-cell">
+          <div class="form-cell-label">Fatigue</div>
+          <div class="form-cell-val" style="color:var(--muted)">38</div>
+          <div class="form-cell-sub">ATL · 1.19× CTL</div>
+        </div>
+        <div class="form-cell">
+          <div class="form-cell-label">Form</div>
+          <div class="form-cell-val blue">−6</div>
+          <div class="form-cell-sub">TSB</div>
+        </div>
+      </div>
+      <div style="padding:12px 18px 14px; border-top:1px solid var(--border)">
+        <canvas id="fitnessChart"></canvas>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-line" style="background:#f87171"></div> CTL</div>
+          <div class="legend-item"><div class="legend-line" style="background:#94a3b8;border-top:2px dashed #94a3b8;height:0"></div> ATL</div>
+          <div class="legend-item"><div class="legend-line" style="background:#60a5fa"></div> TSB</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's session -->
+    <p class="section-label">Today's Session</p>
+    <div class="card">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div>
+            <div class="session-name">Rest Day</div>
+            <div class="session-meta">Full recovery · No training</div>
+          </div>
+          <span class="pill pill-blue">Thu 14 May</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;padding-top:8px;border-top:1px solid var(--border)">
+          Two rest days (Thu + Fri) before Saturday's long ride will push TSB from −6 toward 0.
+          Saturday's Z2 ride (2.5–3hrs, 155–210w) is the key session of the week.
+          VO2 session deferred to Week 3 — ATL too high for quality adaptation today.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-today -->
+
+  <!-- WEEK PAGE -->
+  <div id="page-week" class="page">
+    <p class="section-label">Week 2 — 11 to 17 May 2026</p>
+    <div class="card">
+      <div class="card-body" style="padding:6px 18px">
+        <div class="week-row">
+          <div class="week-day">MON</div>
+          <div class="week-session">Zwift Pacer Maria<small>46 min · 174w Z2 · 125bpm</small></div>
+          <span class="pill pill-green">Done</span>
+        </div>
+        <div class="week-row">
+          <div class="week-day">TUE</div>
+          <div class="week-session">What Goes Up Must Come Down<small>63 min · 216w Z3 · 149bpm</small></div>
+          <span class="pill pill-green">Done</span>
+        </div>
+        <div class="week-row">
+          <div class="week-day">WED</div>
+          <div class="week-session">Zwift Pacer Maria (Z2)<small>61 min · 168w · 132bpm</small></div>
+          <span class="pill pill-green">Done</span>
+        </div>
+        <div class="week-row">
+          <div class="week-day" style="color:var(--accent)">THU</div>
+          <div class="week-session" style="color:var(--accent)">Rest Day<small style="color:var(--muted)">Protect Saturday · TSB recovering</small></div>
+          <span class="pill pill-blue">Today</span>
+        </div>
+        <div class="week-row">
+          <div class="week-day">FRI</div>
+          <div class="week-session">Rest<small>Full recovery</small></div>
+          <span class="pill pill-amber">Tomorrow</span>
+        </div>
+        <div class="week-row">
+          <div class="week-day">SAT</div>
+          <div class="week-session">Long Outdoor Ride ⚡<small>2.5–3hrs · 155–210w · &lt;148bpm</small></div>
+          <span class="pill pill-amber">Key</span>
+        </div>
+        <div class="week-row">
+          <div class="week-day">SUN</div>
+          <div class="week-session">Recovery Spin<small>45–60 min · Z1 only · &lt;157w</small></div>
+          <span class="pill pill-blue">Easy</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-label">Saturday Ride Guidance</p>
+    <div class="card">
+      <div class="card-body" style="font-size:12px;line-height:1.8;color:var(--muted)">
+        <p style="color:var(--text);font-weight:500;margin-bottom:8px">This is the most important session of Week 2.</p>
+        <p>→ <strong style="color:var(--text)">Power:</strong> 155–210w strictly. No chasing segments.</p>
+        <p>→ <strong style="color:var(--text)">HR:</strong> Below 148bpm at all times.</p>
+        <p>→ <strong style="color:var(--text)">Duration:</strong> 2.5hrs minimum — volume is the goal.</p>
+        <p>→ <strong style="color:var(--text)">Fuel:</strong> 60g carbs/hour. Recovery meal within 30 min.</p>
+        <p style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--muted)">
+          If still tired at 90 min: reduce to 140–160w and keep going. Time in zone matters more than intensity.
+        </p>
+      </div>
+    </div>
+
+    <p class="section-label">8 Week Plan Overview</p>
+    <div class="card">
+      <div class="card-body" style="padding:6px 18px">
+        <div class="week-row"><div class="week-day">W1</div><div class="week-session">Threshold reintro<small>4–10 May · 3.5hrs done</small></div><span class="pill pill-green">Done</span></div>
+        <div class="week-row"><div class="week-day" style="color:var(--accent)">W2</div><div class="week-session" style="color:var(--accent)">Threshold build<small style="color:var(--muted)">11–17 May · In progress</small></div><span class="pill pill-blue">Now</span></div>
+        <div class="week-row"><div class="week-day">W3</div><div class="week-session">Mixed intensity<small>18–24 May · First long outdoor ride</small></div></div>
+        <div class="week-row"><div class="week-day">W4</div><div class="week-session">Recovery week<small>25–31 May</small></div></div>
+        <div class="week-row"><div class="week-day">W5</div><div class="week-session">VO2 + Threshold<small>1–7 Jun · Start commuting</small></div></div>
+        <div class="week-row"><div class="week-day">W6</div><div class="week-session">Peak build<small>8–14 Jun · Full commute week</small></div></div>
+        <div class="week-row"><div class="week-day">W7</div><div class="week-session">Race specific<small>15–21 Jun · Gravel simulation</small></div></div>
+        <div class="week-row"><div class="week-day">W8</div><div class="week-session">Recovery + FTP test<small>22–28 Jun</small></div></div>
+      </div>
+    </div>
+  </div><!-- /page-week -->
+
+  <!-- COACH PAGE -->
+  <div id="page-coach" class="page">
+    <p class="section-label">Ask Your Coach</p>
+    <div class="card">
+      <div class="chat-area" id="chatArea">
+        <p>👋 Hi Paul. Ask me anything about your training, readiness, nutrition, or upcoming sessions.</p>
+        <p class="bullet">Try: <em>"Should I ride tonight?"</em></p>
+        <p class="bullet">Try: <em>"What should I eat before Saturday?"</em></p>
+        <p class="bullet">Try: <em>"Why do my legs feel heavy?"</em></p>
+      </div>
+      <div class="input-row">
+        <input class="chat-input" id="chatInput" type="text" placeholder="Ask your coach..." autocomplete="off">
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <p class="section-label">Quick Checks</p>
+    <div class="card">
+      <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px">
+        <button onclick="quickAsk('Based on my current readiness data (Body Battery 96, HRV 48ms, TSB -6), should I do a light ride tonight or stay on rest?','🟢 Ride tonight?')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--font-mono);font-size:11px;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">🟢 Ride tonight?</button>
+        <button onclick="quickAsk('What should I eat before Saturday long Z2 ride at around 8am?','🍌 Pre-ride fuel?')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--font-mono);font-size:11px;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">🍌 Pre-ride fuel?</button>
+        <button onclick="quickAsk('What can I do today to maximise recovery ahead of Saturday key long ride?','💤 Recovery tips?')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--font-mono);font-size:11px;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">💤 Recovery tips?</button>
+        <button onclick="quickAsk('Give me a summary of where my fitness is right now vs where I was before surgery and where I need to get to.','📊 Fitness status?')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--font-mono);font-size:11px;color:var(--text);cursor:pointer;text-align:left;line-height:1.4">📊 Fitness status?</button>
+      </div>
+    </div>
+
+    <p class="section-label">Morning Check-In</p>
+    <div class="card">
+      <div class="readiness-form">
+        <div class="form-row">
+          <label>Body Battery <span id="bbVal" style="color:var(--accent)">—</span></label>
+          <div class="slider-wrap">
+            <input type="range" min="0" max="100" value="50" oninput="document.getElementById('bbVal').textContent=this.value">
+            <div class="slider-val" id="bbDisp">50</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Sleep Score <span style="color:var(--accent)" id="sleepVal">—</span></label>
+          <div class="slider-wrap">
+            <input type="range" min="0" max="100" value="80" oninput="document.getElementById('sleepVal').textContent=this.value;document.getElementById('sleepDisp').textContent=this.value">
+            <div class="slider-val" id="sleepDisp">80</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Leg Fatigue (1=fresh, 10=dead)</label>
+          <div class="slider-wrap">
+            <input type="range" min="1" max="10" value="5" oninput="document.getElementById('legDisp').textContent=this.value">
+            <div class="slider-val" id="legDisp">5</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Motivation (1=none, 10=raring to go)</label>
+          <div class="slider-wrap">
+            <input type="range" min="1" max="10" value="7" oninput="document.getElementById('motivDisp').textContent=this.value">
+            <div class="slider-val" id="motivDisp">7</div>
+          </div>
+        </div>
+        <button class="assess-btn" onclick="assessReadiness()">Get AI Assessment →</button>
+      </div>
+    </div>
+  </div><!-- /page-coach -->
+
+  <!-- STATS PAGE -->
+  <div id="page-stats" class="page">
+    <p class="section-label">Power Profile</p>
+    <div class="card">
+      <div class="card-body" style="padding:6px 18px">
+        <div class="session-item"><div><div class="session-name">FTP</div><div class="session-meta">3.24 w/kg</div></div><div class="session-right"><div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--accent)">285w</div></div></div>
+        <div class="session-item"><div><div class="session-name">VO2 Max (Garmin)</div><div class="session-meta">Target: 55</div></div><div class="session-right"><div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--warn)">51</div></div></div>
+        <div class="session-item"><div><div class="session-name">5s Peak</div><div class="session-meta">7.8 w/kg</div></div><div class="session-right"><div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--accent)">688w</div></div></div>
+        <div class="session-item"><div><div class="session-name">1min Peak</div><div class="session-meta">4.7 w/kg</div></div><div class="session-right"><div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--accent)">418w</div></div></div>
+        <div class="session-item"><div><div class="session-name">5min Peak</div><div class="session-meta">3.4 w/kg</div></div><div class="session-right"><div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--accent)">300w</div></div></div>
+        <div class="session-item"><div><div class="session-name">20min Peak</div><div class="session-meta">2.8 w/kg</div></div><div class="session-right"><div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--warn)">249w</div></div></div>
+      </div>
+    </div>
+
+    <p class="section-label">Training Zones — FTP 285w</p>
+    <div class="card">
+      <div class="card-body" style="padding:6px 18px">
+        <div class="session-item"><div style="display:flex;align-items:center;gap:10px"><div style="width:3px;height:36px;background:#4fffb0;border-radius:2px;flex-shrink:0"></div><div><div class="session-name">Z1 · Active Recovery</div><div class="session-meta">&lt; 157w · &lt; 109bpm</div></div></div></div>
+        <div class="session-item"><div style="display:flex;align-items:center;gap:10px"><div style="width:3px;height:36px;background:#60a5fa;border-radius:2px;flex-shrink:0"></div><div><div class="session-name">Z2 · Endurance</div><div class="session-meta">157–214w · 109–148bpm</div></div></div></div>
+        <div class="session-item"><div style="display:flex;align-items:center;gap:10px"><div style="width:3px;height:36px;background:#a78bfa;border-radius:2px;flex-shrink:0"></div><div><div class="session-name">Z3 · Tempo</div><div class="session-meta">214–257w · 148–162bpm</div></div></div></div>
+        <div class="session-item"><div style="display:flex;align-items:center;gap:10px"><div style="width:3px;height:36px;background:#ffb347;border-radius:2px;flex-shrink:0"></div><div><div class="session-name">Z4 · Threshold</div><div class="session-meta">257–299w · 162–170bpm</div></div></div></div>
+        <div class="session-item"><div style="display:flex;align-items:center;gap:10px"><div style="width:3px;height:36px;background:#ff6b6b;border-radius:2px;flex-shrink:0"></div><div><div class="session-name">Z5 · VO2 Max</div><div class="session-meta">299–342w · 170–176bpm</div></div></div></div>
+        <div class="session-item"><div style="display:flex;align-items:center;gap:10px"><div style="width:3px;height:36px;background:#ff3b6b;border-radius:2px;flex-shrink:0"></div><div><div class="session-name">Z6 · Anaerobic</div><div class="session-meta">342–428w · &gt; 176bpm</div></div></div></div>
+      </div>
+    </div>
+
+    <p class="section-label">Recent Sessions</p>
+    <div class="card">
+      <div class="card-body" style="padding:6px 18px">
+        <div class="session-item"><div><div class="session-name">Zwift Pacer Maria</div><div class="session-meta">61min · 168w Z2 · 132bpm</div></div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px">13 May</div></div>
+        <div class="session-item"><div><div class="session-name">What Goes Up Must Come Down</div><div class="session-meta">63min · 216w Z3 · 149bpm · max 170bpm</div></div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px">12 May</div></div>
+        <div class="session-item"><div><div class="session-name">Zwift Pacer Maria</div><div class="session-meta">46min · 174w Z2 · 125bpm</div></div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px">11 May</div></div>
+        <div class="session-item"><div><div class="session-name">8/6/4min Threshold</div><div class="session-meta">63min · 199w · 139bpm · max 173bpm</div></div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px">10 May</div></div>
+        <div class="session-item"><div><div class="session-name">Endurance #2</div><div class="session-meta">41min · 169w Z2 · 130bpm</div></div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px">9 May</div></div>
+        <div class="session-item"><div><div class="session-name">Fitness Builder</div><div class="session-meta">42min · 204w Z3 · 140bpm</div></div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px">7 May</div></div>
+        <div class="session-item"><div><div class="session-name">Brentwood Gravel</div><div class="session-meta">85min · pre-surgery · all power bests</div></div><div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px">6 Apr</div></div>
+      </div>
+    </div>
+  </div><!-- /page-stats -->
+
+</div><!-- /app -->
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="bottom-nav-btn active" id="nav-today" onclick="showPage('today')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+    </svg>
+    Today
+  </button>
+  <button class="bottom-nav-btn" id="nav-week" onclick="showPage('week')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    Week
+  </button>
+  <button class="bottom-nav-btn" id="nav-coach" onclick="showPage('coach')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    Coach
+  </button>
+  <button class="bottom-nav-btn" id="nav-stats" onclick="showPage('stats')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    Stats
+  </button>
+</div>
+
+<div id="chartTooltip"></div>
+
+<script>
+// ── API Key management ────────────────────────────────────────────────────
+function getKey() { return localStorage.getItem('paul_coach_api_key') || ''; }
+
+function saveKey() {
+  const key = document.getElementById('keyInput').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    alert('That doesn\'t look like a valid Anthropic API key. It should start with sk-ant-');
+    return;
+  }
+  localStorage.setItem('paul_coach_api_key', key);
+  document.getElementById('setupOverlay').classList.add('hidden');
+  updateKeyStatus();
+}
+
+function updateKeyStatus() {
+  const key = getKey();
+  const dot = document.getElementById('keyDot');
+  const label = document.getElementById('keyLabel');
+  if (key) {
+    dot.classList.add('active');
+    label.textContent = 'AI ready';
+  } else {
+    dot.classList.remove('active');
+    label.textContent = 'No API key';
+  }
+}
+
+function showKeySettings() {
+  const key = getKey();
+  if (key) {
+    if (confirm('API key is set. Tap OK to clear it and enter a new one.')) {
+      localStorage.removeItem('paul_coach_api_key');
+      updateKeyStatus();
+      document.getElementById('keyInput').value = '';
+      document.getElementById('setupOverlay').classList.remove('hidden');
+    }
+  } else {
+    document.getElementById('setupOverlay').classList.remove('hidden');
+  }
+}
+
+// Check on load
+window.addEventListener('DOMContentLoaded', () => {
+  updateKeyStatus();
+  if (!getKey()) {
+    document.getElementById('setupOverlay').classList.remove('hidden');
+  }
+  drawChart();
+  initChartEvents();
+  // Date
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  document.getElementById('todayDate').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  // Slider sync
+  document.querySelectorAll('input[type=range]').forEach(s => {
+    s.addEventListener('input', () => {
+      const disp = s.parentElement.querySelector('.slider-val');
+      if (disp) disp.textContent = s.value;
+    });
+  });
+  document.getElementById('chatInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') sendMessage();
+  });
+});
+
+
+const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const now = new Date();
+document.getElementById('todayDate').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+
+// ── Page navigation ───────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'today') drawChart();
+}
+
+// ── CTL/ATL/TSB calculation ───────────────────────────────────────────────
+const FTP = 285;
+const rides = [
+  {date:"2026-03-27",dur:1571,pwr:211.1},{date:"2026-03-28",dur:419,pwr:92.8},
+  {date:"2026-03-29",dur:3609,pwr:191.2},{date:"2026-03-30",dur:5449,pwr:189.1},
+  {date:"2026-03-31",dur:1825,pwr:211.2},{date:"2026-04-02",dur:3012,pwr:209.2},
+  {date:"2026-04-03",dur:5390,pwr:216},{date:"2026-04-04",dur:2468,pwr:186.2},
+  {date:"2026-04-05",dur:4047,pwr:239.8},{date:"2026-04-06",dur:5113,pwr:176.6},
+  {date:"2026-05-02",dur:1846,pwr:174.4},{date:"2026-05-03",dur:1814,pwr:220},
+  {date:"2026-05-04",dur:2006,pwr:172.3},{date:"2026-05-06",dur:1814,pwr:212.1},
+  {date:"2026-05-07",dur:2549,pwr:204.1},{date:"2026-05-09",dur:2430,pwr:169.4},
+  {date:"2026-05-10",dur:3769,pwr:199.4},{date:"2026-05-11",dur:2783,pwr:174.4},
+  {date:"2026-05-12",dur:3789,pwr:216.4},{date:"2026-05-13",dur:3651,pwr:167.6},
+];
+
+const tssMap = {};
+rides.forEach(r => {
+  const IF = r.pwr / FTP;
+  const tss = (r.dur * r.pwr * IF) / (FTP * 3600) * 100;
+  tssMap[r.date] = (tssMap[r.date] || 0) + tss;
+});
+
+function genDates(start, end) {
+  const arr = []; let d = new Date(start); const e = new Date(end);
+  while (d <= e) { arr.push(d.toISOString().split('T')[0]); d = new Date(d.getTime()+86400000); }
+  return arr;
+}
+
+const allDates = genDates('2026-03-22','2026-05-14');
+let ctl = 28, atl = 45;
+const chartPoints = allDates.map(date => {
+  const tss = tssMap[date] || 0;
+  ctl += (tss - ctl) / 42;
+  atl += (tss - atl) / 7;
+  return { date, ctl: Math.round(ctl*10)/10, atl: Math.round(atl*10)/10, tsb: Math.round((ctl-atl)*10)/10 };
+});
+
+// ── Canvas chart ──────────────────────────────────────────────────────────
+function drawChart() {
+  const canvas = document.getElementById('fitnessChart');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.offsetWidth - 36;
+  const H = 200;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = { top: 16, right: 10, bottom: 28, left: 30 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const pts = chartPoints;
+  const n = pts.length;
+
+  // y range
+  const allVals = pts.flatMap(p => [p.ctl, p.atl, p.tsb]);
+  const yMin = Math.floor(Math.min(...allVals) / 10) * 10 - 10;
+  const yMax = Math.ceil(Math.max(...allVals) / 10) * 10 + 10;
+
+  const xScale = i => pad.left + (i / (n-1)) * cw;
+  const yScale = v => pad.top + ch - ((v - yMin) / (yMax - yMin)) * ch;
+
+  // Grid
+  ctx.strokeStyle = '#ffffff08'; ctx.lineWidth = 1;
+  for (let v = Math.ceil(yMin/10)*10; v <= yMax; v += 10) {
+    const y = yScale(v);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    ctx.fillStyle = '#ffffff30'; ctx.font = '9px DM Mono, monospace';
+    ctx.fillText(v, 2, y + 3);
+  }
+
+  // Zero line
+  ctx.strokeStyle = '#ffffff20'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(pad.left, yScale(0)); ctx.lineTo(pad.left+cw, yScale(0)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Shaded bands (productive zone = CTL to 1.3*CTL behind ATL line)
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = '#6ee7b7';
+  ctx.beginPath();
+  ctx.moveTo(xScale(0), yScale(pts[0].ctl));
+  for (let i=1;i<n;i++) ctx.lineTo(xScale(i), yScale(pts[i].ctl * 1.3));
+  for (let i=n-1;i>=0;i--) ctx.lineTo(xScale(i), yScale(pts[i].ctl));
+  ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Surgery / return markers
+  ['2026-04-06','2026-05-02'].forEach((d,i) => {
+    const idx = pts.findIndex(p => p.date === d);
+    if (idx < 0) return;
+    ctx.strokeStyle = i===0 ? '#ffb34760' : '#4fffb060';
+    ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(xScale(idx), pad.top); ctx.lineTo(xScale(idx), pad.top+ch); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = i===0 ? '#ffb347' : '#4fffb0';
+    ctx.font = '8px DM Mono, monospace';
+    ctx.fillText(i===0?'Surgery':'Return', xScale(idx)+3, pad.top+10);
+  });
+
+  // ATL line (dashed)
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.setLineDash([5,3]);
+  ctx.beginPath();
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(xScale(i),yScale(p.atl)) : ctx.lineTo(xScale(i),yScale(p.atl)));
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // CTL line
+  ctx.strokeStyle = '#f87171'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(xScale(i),yScale(p.ctl)) : ctx.lineTo(xScale(i),yScale(p.ctl)));
+  ctx.stroke();
+
+  // TSB line
+  ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(xScale(i),yScale(p.tsb)) : ctx.lineTo(xScale(i),yScale(p.tsb)));
+  ctx.stroke();
+
+  // X axis labels — weekly
+  ctx.fillStyle = '#ffffff40'; ctx.font = '9px DM Mono, monospace';
+  const step = Math.ceil(n / 7);
+  for (let i=0; i<n; i+=step) {
+    const d = pts[i].date.slice(5).replace('-','/');
+    ctx.fillText(d, xScale(i)-8, H-6);
+  }
+
+  // Tooltip interaction
+  canvas._pts = pts; canvas._xScale = xScale; canvas._yScale = yScale;
+  canvas._pad = pad; canvas._n = n; canvas._cw = cw;
+}
+
+// Canvas hover & touch
+function initChartEvents() {
+  const canvas = document.getElementById('fitnessChart');
+  if (!canvas) return;
+  const tooltip = document.getElementById('chartTooltip');
+
+  canvas.addEventListener('mousemove', e => {
+    if (!canvas._pts) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - canvas._pad.left;
+    const idx = Math.round((x / (rect.width - canvas._pad.left - 10)) * (canvas._n - 1));
+    if (idx < 0 || idx >= canvas._n) { tooltip.style.display='none'; return; }
+    const p = canvas._pts[idx];
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 10) + 'px';
+    tooltip.style.top = (e.clientY - 60) + 'px';
+    tooltip.innerHTML = `<strong style="color:#e2e8f0">${p.date}</strong><br>
+      <span style="color:#f87171">CTL: ${p.ctl}</span><br>
+      <span style="color:#94a3b8">ATL: ${p.atl}</span><br>
+      <span style="color:#60a5fa">TSB: ${p.tsb}</span>`;
+  });
+  canvas.addEventListener('mouseleave', () => { tooltip.style.display='none'; });
+
+  // Touch support
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left - canvas._pad.left;
+    const idx = Math.round((x / (rect.width - canvas._pad.left - 10)) * (canvas._n - 1));
+    if (idx < 0 || idx >= canvas._n) { tooltip.style.display='none'; return; }
+    const p = canvas._pts[idx];
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(touch.clientX + 10, window.innerWidth - 160) + 'px';
+    tooltip.style.top = (touch.clientY - 80) + 'px';
+    tooltip.innerHTML = `<strong style="color:#e2e8f0">${p.date}</strong><br>
+      <span style="color:#f87171">CTL: ${p.ctl}</span>  <span style="color:#94a3b8">ATL: ${p.atl}</span>  <span style="color:#60a5fa">TSB: ${p.tsb}</span>`;
+  }, {passive:false});
+  canvas.addEventListener('touchend', () => setTimeout(() => { tooltip.style.display='none'; }, 1500));
+}
+
+// Also update weight in coaching context
+const ATHLETE_WEIGHT = 87; // updated 14 May 2026
+
+// ── AI Chat ───────────────────────────────────────────────────────────────
+const COACHING_CONTEXT = `You are Paul Saunders's personal cycling coach. Here is his current context:
+
+ATHLETE: Paul Saunders, 46-55yo, 87kg (down from 88kg, updated 14 May), ex-Category 2 road cyclist, returning from lipoma surgery (May 2026), Week 2 of 8-week build programme. Goal: competitive gravel racing. Current W/kg: 3.27 at 285w FTP.
+
+FITNESS (14 May 2026):
+- FTP: 285w (3.24 w/kg)
+- CTL (fitness): ~32 (down from ~48 pre-surgery)
+- ATL (fatigue): ~38 (above CTL — sessions feel harder than they should)
+- TSB (form): ~-6 (neutral, improving with rest)
+- VO2 Max (Garmin): 51
+
+TODAY'S READINESS (14 May):
+- Body Battery: 96/100 (charged +57 overnight)
+- HRV overnight: 48ms (above 44ms baseline — excellent)
+- Resting HR: 52bpm (at baseline)
+- Sleep: 9h 8m, excellent quality
+- Stress: 13/100 (very low)
+- Today is a REST DAY
+
+THIS WEEK (Week 2):
+- Mon 11: Zwift Pacer Maria 46min 174w Z2 ✓
+- Tue 12: What Goes Up 63min 216w Z3 ✓  
+- Wed 13: Zwift Pacer 61min 168w Z2 ✓ (felt harder than expected — TSB effect)
+- Thu 14: Rest (today)
+- Fri 15: Rest
+- Sat 16: KEY SESSION — Long outdoor Z2 ride 2.5-3hrs 155-210w <148bpm
+- Sun 17: Recovery spin Z1
+
+TRAINING ZONES (FTP 285w):
+Z1<157w, Z2 157-214w, Z3 214-257w, Z4 257-299w, Z5 299-342w
+
+NUTRITION PROFILE:
+- ZOE test: Blood sugar 90/100 excellent, Blood fat 28/100 poor (priority fix)
+- Key: reduce saturated fat, add ground flaxseed, switch flat whites to oat milk, salmon/mackerel 2x/week
+- Ride fuelling: 60g carbs/hour for rides over 90min
+
+HEALTH BASELINES:
+- RHR baseline 51bpm | HRV baseline 44ms | Body Battery should wake at 70+
+
+Give concise, direct coaching advice. Use bullet points. Be specific with numbers (watts, HR, duration). Keep responses under 150 words. Address Paul by name occasionally.`;
+
+let chatHistory = [];
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  await doChat(msg);
+}
+
+async function quickAsk(prompt, label) {
+  await doChat(prompt, label);
+  showPage('coach');
+}
+
+async function doChat(msg, displayMsg) {
+  const area = document.getElementById('chatArea');
+
+  // Show user message
+  const userDiv = document.createElement('div');
+  userDiv.style.cssText = 'background:var(--surface2);border-radius:10px;padding:10px 14px;margin:8px 0;font-size:12px;border:1px solid var(--border)';
+  userDiv.textContent = displayMsg || msg;
+  area.appendChild(userDiv);
+
+  // Loading
+  const loadDiv = document.createElement('div');
+  loadDiv.className = 'loading';
+  loadDiv.innerHTML = '<div class="spinner"></div><span>Coach is thinking...</span>';
+  area.appendChild(loadDiv);
+  area.scrollTop = area.scrollHeight;
+
+  chatHistory.push({ role: "user", content: msg });
+
+  try {
+    const apiKey = getKey();
+    if (!apiKey) {
+      loadDiv.remove();
+      document.getElementById('setupOverlay').classList.remove('hidden');
+      return;
+    }
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: COACHING_CONTEXT,
+        messages: chatHistory
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Please try again.";
+    chatHistory.push({ role: "assistant", content: reply });
+
+    loadDiv.remove();
+
+    const replyDiv = document.createElement('div');
+    replyDiv.className = 'chat-area';
+    replyDiv.style.cssText = 'padding:10px 14px;margin:4px 0;background:var(--surface2);border-radius:10px;border:1px solid var(--border);border-left:3px solid var(--accent)';
+    // Format the reply
+    replyDiv.innerHTML = reply
+      .split('\n').filter(l => l.trim())
+      .map(line => {
+        if (line.startsWith('•') || line.startsWith('-') || line.startsWith('→')) {
+          return `<p class="bullet" style="padding-left:16px;position:relative;font-size:12px;margin:3px 0">${line.replace(/^[•\-→]\s*/,'')}</p>`;
+        }
+        return `<p style="font-size:12px;margin:4px 0">${line}</p>`;
+      }).join('');
+    area.appendChild(replyDiv);
+  } catch (err) {
+    loadDiv.remove();
+    const errDiv = document.createElement('div');
+    errDiv.style.cssText = 'padding:10px 14px;color:var(--accent2);font-size:12px;';
+    errDiv.textContent = '⚠ Connection error. Check your network and try again.';
+    area.appendChild(errDiv);
+  }
+  area.scrollTop = area.scrollHeight;
+}
+
+async function assessReadiness() {
+  const bb = document.querySelector('#page-coach input[type=range]:nth-of-type(1)').value;
+  const sleep = document.querySelector('#page-coach input[type=range]:nth-of-type(2)').value;
+  const legs = document.getElementById('legDisp').textContent;
+  const motiv = document.getElementById('motivDisp').textContent;
+
+  const prompt = `Morning check-in: Body Battery ${bb}/100, Sleep score ${sleep}/100, Leg fatigue ${legs}/10, Motivation ${motiv}/10. Today is Thursday 14 May (rest day). Should I stick to rest or is a light spin OK? What's your assessment?`;
+  showPage('coach');
+  await doChat(prompt, `📊 Check-in: BB ${bb} · Sleep ${sleep} · Legs ${legs}/10 · Motiv ${motiv}/10`);
+}
+</script>
+</body>
+</html>
